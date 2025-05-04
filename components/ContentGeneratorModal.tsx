@@ -12,7 +12,19 @@ import {
   Easing,
   Platform,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  Easing as ReanimatedEasing,
+  runOnJS,
+  interpolate,
+  withSequence,
+  withDelay,
+} from "react-native-reanimated";
 import {
   X,
   BookOpen,
@@ -81,12 +93,23 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
   const [title, setTitle] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   
-  // Animation refs
+  // Reanimated shared values for smoother animations
+  const modalOpacity = useSharedValue(0);
+  const modalScale = useSharedValue(0.8);
+  const modalTranslateY = useSharedValue(50);
+  
+  // Legacy Animation refs (will keep for compatibility)
   const spinValue = useRef(new Animated.Value(0)).current;
   const opacityValue = useRef(new Animated.Value(1)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
   const successScale = useRef(new Animated.Value(0)).current;
+  
+  // Reanimated shared values for generating animation
+  const reanimatedSpin = useSharedValue(0);
+  const reanimatedScale = useSharedValue(1);
+  const reanimatedSuccessScale = useSharedValue(0);
   
   // Reading level based on active child's profile (or default to beginner)
   const readingLevel = activeChild?.readingLevel || "beginner";
@@ -103,24 +126,73 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
   // Store temporary content items
   const [contentItems, setContentItems] = useState<Omit<AIContentItem, 'content_id'>[]>([]);
   
+  // Handle modal visibility with animations
+  useEffect(() => {
+    if (visible) {
+      // When opening the modal
+      setModalVisible(true);
+      modalOpacity.value = withTiming(1, { duration: 300, easing: ReanimatedEasing.out(ReanimatedEasing.cubic) });
+      modalScale.value = withSpring(1, { damping: 15, stiffness: 150 });
+      modalTranslateY.value = withTiming(0, { duration: 300, easing: ReanimatedEasing.out(ReanimatedEasing.cubic) });
+    } else {
+      // When closing the modal, animate out first, then set visibility to false
+      modalOpacity.value = withTiming(0, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) });
+      modalScale.value = withTiming(0.8, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) });
+      modalTranslateY.value = withTiming(50, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) }, 
+        (finished) => {
+          if (finished) {
+            runOnJS(setModalVisible)(false);
+          }
+        }
+      );
+    }
+  }, [visible]);
+
+  // Handle back button press
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (visible && !isGenerating) {
+        handleClose();
+        return true;
+      }
+      return false;
+    });
+
+    return () => backHandler.remove();
+  }, [visible, isGenerating]);
+  
   // Reset state when modal closes
   const handleClose = () => {
     // Only allow closing if not actively generating
     if (!isGenerating) {
-      setContentType(null);
-      setTitle("");
-      setShowSuccess(false);
-      setGeneratedText(undefined);
-      setGeneratedImageUrl(undefined);
-      setGeneratedAudioUrl(undefined);
-      onClose();
+      // Start closing animation
+      modalOpacity.value = withTiming(0, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) });
+      modalScale.value = withTiming(0.8, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) });
+      modalTranslateY.value = withTiming(50, { duration: 250, easing: ReanimatedEasing.in(ReanimatedEasing.cubic) }, 
+        (finished) => {
+          if (finished) {
+            runOnJS(resetState)();
+          }
+        }
+      );
     }
   };
   
-  // Start animations when generating
+  // Reset all state variables
+  const resetState = () => {
+    setContentType(null);
+    setTitle("");
+    setShowSuccess(false);
+    setGeneratedText(undefined);
+    setGeneratedImageUrl(undefined);
+    setGeneratedAudioUrl(undefined);
+    onClose();
+  };
+  
+  // Start animations when generating - using Reanimated
   useEffect(() => {
     if (isGenerating && !showSuccess) {
-      // Rotation animation
+      // Legacy animations for compatibility
       Animated.loop(
         Animated.timing(spinValue, {
           toValue: 1,
@@ -130,7 +202,6 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
         })
       ).start();
       
-      // Pulse animation
       Animated.loop(
         Animated.sequence([
           Animated.timing(scaleValue, {
@@ -145,30 +216,86 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
           })
         ])
       ).start();
+      
+      // Reanimated animations
+      // Continuous rotation animation
+      const rotationInterval = setInterval(() => {
+        reanimatedSpin.value = withTiming(reanimatedSpin.value + 1, { duration: 2000, easing: ReanimatedEasing.linear });
+      }, 2000);
+      
+      // Pulse animation
+      const pulseAnimation = () => {
+        reanimatedScale.value = withSequence(
+          withTiming(1.2, { duration: 1000, easing: ReanimatedEasing.inOut(ReanimatedEasing.quad) }),
+          withTiming(1, { duration: 1000, easing: ReanimatedEasing.inOut(ReanimatedEasing.quad) })
+        );
+        setTimeout(pulseAnimation, 2000);
+      };
+      
+      pulseAnimation();
+      
+      return () => {
+        clearInterval(rotationInterval);
+      };
     }
     
-    // Success animation
+    // Success animation with Reanimated
     if (showSuccess) {
+      // Legacy animation
       Animated.spring(successScale, {
         toValue: 1,
         friction: 5,
         tension: 40,
         useNativeDriver: true
       }).start();
+      
+      // Reanimated animation
+      reanimatedSuccessScale.value = withSpring(1, { 
+        damping: 10, 
+        stiffness: 100,
+        mass: 1
+      });
     }
     
     return () => {
-      // Clean up animations
+      // Clean up legacy animations
       spinValue.stopAnimation();
       scaleValue.stopAnimation();
       successScale.stopAnimation();
     };
   }, [isGenerating, showSuccess]);
   
-  // Interpolate spin value to rotation
+  // Interpolate spin value to rotation (legacy)
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg']
+  });
+  
+  // Reanimated animated styles
+  const modalAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: modalOpacity.value,
+      transform: [
+        { scale: modalScale.value },
+        { translateY: modalTranslateY.value }
+      ],
+    };
+  });
+  
+  const spinAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { rotate: `${reanimatedSpin.value * 360}deg` },
+        { scale: reanimatedScale.value }
+      ],
+    };
+  });
+  
+  const successAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: reanimatedSuccessScale.value }],
+      opacity: reanimatedSuccessScale.value,
+    };
   });
   
   // Content options with icons and descriptions
@@ -248,8 +375,14 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
           console.log('[Modal] Generating image for:', line);
           const imageResult = await generateImage(line);
           if (imageResult && !imageResult.error) {
-            console.log('[Modal] Image generated:', imageResult.url);
-            lineImageUrl = imageResult.url;
+            // Don't log the full URL to avoid truncation
+            console.log('[Modal] Image generated successfully');
+            // Verify we have a valid URL
+            if (imageResult.url && imageResult.url.startsWith('http')) {
+              lineImageUrl = imageResult.url;
+            } else {
+              console.error('[Modal] Invalid image URL received:', typeof imageResult.url);
+            }
           }
         } catch (error) {
           console.error('[Modal] Error generating image:', error);
@@ -553,13 +686,13 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
   
   return (
     <Modal
-      animationType="slide"
+      animationType="none"
       transparent={true}
-      visible={visible}
+      visible={modalVisible}
       onRequestClose={handleClose}
     >
       <View style={modalOverlayStyle}>
-        <View style={modalContainerStyle}>
+        <Reanimated.View style={[modalContainerStyle, modalAnimatedStyle]}>
           <TouchableOpacity style={closeButtonStyle} onPress={handleClose}>
             <X size={24} color={theme.textLight} />
           </TouchableOpacity>
@@ -613,24 +746,21 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
           ) : (
             <View style={generatingContainerStyle}>{/* Parent View */}
               {!showSuccess ? (
-                <Animated.View
+                <Reanimated.View
                   style={[
                     generatingAnimationContainerStyle,
-                    { 
-                      opacity: opacityValue,
-                      transform: [{ rotate: spin }, { scale: scaleValue }],
-                    }
+                    spinAnimatedStyle
                   ]}
                 >
                   <Sparkles size={48} color={colors.primary} />
-                </Animated.View>
+                </Reanimated.View>
               ) : (
-                <Animated.View style={{ transform: [{ scale: successScale }] }}>
+                <Reanimated.View style={successAnimatedStyle}>
                   <MascotGuide 
                     message="All done! Your new reading material is ready in the library."
                     type="tip" // Changed from 'success' to 'tip' as MascotGuide only accepts 'tip', 'alert', or 'help'
                   />
-                </Animated.View>
+                </Reanimated.View>
               )}
               <Text style={generatingTextStyle}>{showSuccess ? 'Content Generated!' : 'Generating your content...'}</Text>{showSuccess && <Text style={successTextStyle}>Check your library!</Text>}
             </View>
@@ -639,14 +769,14 @@ function ContentGeneratorModal({ visible, onClose }: ContentGeneratorModalProps)
            {/* Success Overlay */}
            {showSuccess && (
               <View style={styles.successOverlay}>
-                  <Animated.View style={[styles.successContent, { transform: [{ scale: successScale }] }]}>
+                  <Reanimated.View style={[styles.successContent, successAnimatedStyle]}>
                       <CheckCircle size={80} color={colors.success} />
                       <Text style={styles.successText}>Created Successfully!</Text>
-                  </Animated.View>
+                  </Reanimated.View>
               </View>
           )}
 
-        </View>
+        </Reanimated.View>
       </View>
     </Modal>
   );

@@ -6,6 +6,15 @@ import { spacing } from "@/constants/spacing";
 import { useThemeStore } from "@/store/theme-store";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
+// Colors from design.md for claymorphic design
+const designColors = {
+  sunflower: '#ffb703',
+  orange: '#fb8500',
+  blue: '#219ebc',
+  skyBlue: '#8ecae6',
+  deepNavy: '#023047'
+};
+
 interface ProgressStatsProps {
   booksRead: number;
   minutesRead: number;
@@ -23,49 +32,47 @@ export default function ProgressStats({
   const theme = useThemeColors();
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.statsCard, { backgroundColor: theme.card }]}>
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? colors.primaryDark + '30' : colors.primaryLight + '20' }]}>
-              <BookOpen size={20} color={colors.primary} />
-            </View>
-            <View style={styles.statTextContainer}>
-              <Text style={[styles.statValue, { color: theme.text }]}>{booksRead}</Text>
-              <Text style={[styles.statLabel, { color: theme.textLight }]}>Books</Text>
-            </View>
+    <View style={styles.statsContainer}>
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <View style={[styles.iconContainer, { backgroundColor: designColors.skyBlue }]}>
+            <BookOpen size={22} color={designColors.deepNavy} />
           </View>
-
-          <View style={styles.statItem}>
-            <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? colors.secondaryDark + '30' : colors.secondaryLight + '20' }]}>
-              <Clock size={20} color={colors.secondary} />
-            </View>
-            <View style={styles.statTextContainer}>
-              <Text style={[styles.statValue, { color: theme.text }]}>{minutesRead}</Text>
-              <Text style={[styles.statLabel, { color: theme.textLight }]}>Minutes</Text>
-            </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>{booksRead}</Text>
+            <Text style={styles.statLabel}>Books</Text>
           </View>
         </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? colors.tertiaryDark + '30' : colors.tertiaryLight + '20' }]}>
-              <Flame size={20} color={colors.tertiary} />
-            </View>
-            <View style={styles.statTextContainer}>
-              <Text style={[styles.statValue, { color: theme.text }]}>{streakDays}</Text>
-              <Text style={[styles.statLabel, { color: theme.textLight }]}>Day Streak</Text>
-            </View>
+        <View style={styles.statItem}>
+          <View style={[styles.iconContainer, { backgroundColor: designColors.skyBlue }]}>
+            <Clock size={22} color={designColors.deepNavy} />
           </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>{minutesRead}</Text>
+            <Text style={styles.statLabel}>Minutes</Text>
+          </View>
+        </View>
+      </View>
 
-          <View style={styles.statItem}>
-            <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? colors.accent1 + '30' : colors.accent1 + '20' }]}>
-              <Mic size={20} color={colors.accent1} />
-            </View>
-            <View style={styles.statTextContainer}>
-              <Text style={[styles.statValue, { color: theme.text }]}>{pronunciationAccuracy}%</Text>
-              <Text style={[styles.statLabel, { color: theme.textLight }]}>Accuracy</Text>
-            </View>
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <View style={[styles.iconContainer, { backgroundColor: designColors.skyBlue }]}>
+            <Flame size={22} color={designColors.deepNavy} />
+          </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>{streakDays}</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </View>
+        </View>
+
+        <View style={styles.statItem}>
+          <View style={[styles.iconContainer, { backgroundColor: designColors.skyBlue }]}>
+            <Mic size={22} color={designColors.deepNavy} />
+          </View>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statValue}>{pronunciationAccuracy}%</Text>
+            <Text style={styles.statLabel}>Accuracy</Text>
           </View>
         </View>
       </View>
@@ -74,22 +81,23 @@ export default function ProgressStats({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: spacing.lg,
-  },
-  statsCard: {
-    borderRadius: 16,
-    padding: spacing.md,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  statsContainer: {
+    borderRadius: 28,
+    padding: spacing.lg,
+    backgroundColor: 'white',
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: 'white',
   },
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   statItem: {
     flexDirection: "row",
@@ -97,21 +105,32 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.sm,
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   statTextContainer: {
     flex: 1,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: designColors.blue,
   },
 });

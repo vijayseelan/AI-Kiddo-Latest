@@ -22,6 +22,16 @@ import BookCard from "@/components/BookCard";
 import Button from "@/components/Button";
 import ContentGeneratorModal from "@/components/ContentGeneratorModal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
+
+// Design system colors
+const designColors = {
+  sunflower: "#ffb703",
+  orange: "#fb8500",
+  blue: "#219ebc",
+  skyBlue: "#8ecae6",
+  deepNavy: "#023047"
+};
 
 type FilterType = "all" | "reading" | "completed" | "favorites";
 
@@ -93,7 +103,6 @@ export default function LibraryScreen() {
     <Pressable
       style={[
         styles.filterButton,
-        { backgroundColor: isDarkMode ? theme.card : colors.card },
         activeFilter === type && styles.activeFilterButton,
       ]}
       onPress={() => setActiveFilter(type)}
@@ -102,7 +111,6 @@ export default function LibraryScreen() {
       <Text
         style={[
           styles.filterText,
-          { color: isDarkMode ? theme.textLight : colors.textLight },
           activeFilter === type && styles.activeFilterText,
         ]}
       >
@@ -112,9 +120,18 @@ export default function LibraryScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={[styles.title, { color: theme.text }]}>My Library</Text>
+    <View style={styles.container}>
+      {/* Gradient background layers - similar to HomeScreen */}
+      <View style={styles.gradientBg1} />
+      <View style={styles.gradientBg2} />
+      <View style={styles.gradientBg3} />
+      <View style={styles.gradientBg4} />
+      
+      {/* Blur effect overlay */}
+      <BlurView intensity={100} tint="light" style={styles.blurOverlay} />
+
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <Text style={styles.title}>My Library</Text>
         <Button 
           title="Create" 
           onPress={() => setShowGenerator(true)}
@@ -131,7 +148,7 @@ export default function LibraryScreen() {
             "All",
             <BookOpen
               size={18}
-              color={activeFilter === "all" ? colors.primary : theme.textLight}
+              color={activeFilter === "all" ? designColors.deepNavy : designColors.blue}
             />
           )}
           {renderFilter(
@@ -139,7 +156,7 @@ export default function LibraryScreen() {
             "Reading",
             <Clock
               size={18}
-              color={activeFilter === "reading" ? colors.primary : theme.textLight}
+              color={activeFilter === "reading" ? designColors.deepNavy : designColors.blue}
             />
           )}
           {renderFilter(
@@ -147,7 +164,7 @@ export default function LibraryScreen() {
             "Completed",
             <CheckCircle
               size={18}
-              color={activeFilter === "completed" ? colors.primary : theme.textLight}
+              color={activeFilter === "completed" ? designColors.deepNavy : designColors.blue}
             />
           )}
           {renderFilter(
@@ -155,7 +172,7 @@ export default function LibraryScreen() {
             "Favorites",
             <Heart
               size={18}
-              color={activeFilter === "favorites" ? colors.primary : theme.textLight}
+              color={activeFilter === "favorites" ? designColors.deepNavy : designColors.blue}
             />
           )}
         </ScrollView>
@@ -164,14 +181,24 @@ export default function LibraryScreen() {
       <View style={styles.content}>
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.text }]}>Loading your content...</Text>
+            <ActivityIndicator size="large" color={designColors.orange} />
+            <Text style={styles.loadingText}>Loading your content...</Text>
           </View>
         ) : filteredContent.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: theme.text }]}>
-              No content found. Create your first content by clicking the Create button above!
-            </Text>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyTitle}>Your library is empty</Text>
+              <Text style={styles.emptyText}>
+                Create your first content by clicking the Create button above!
+              </Text>
+              <Button 
+                title="Create Content" 
+                onPress={() => setShowGenerator(true)}
+                variant="primary"
+                size="medium"
+                icon={<Plus size={16} color="white" />}
+              />
+            </View>
           </View>
         ) : (
           <FlatList
@@ -209,54 +236,90 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Container and background styles
+  container: {
+    flex: 1,
+    backgroundColor: designColors.skyBlue,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Gradient background layers - from HomeScreen
+  gradientBg1: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: designColors.skyBlue,
+    zIndex: 1,
+  },
+  gradientBg2: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '80%',
+    height: '60%',
+    backgroundColor: designColors.blue,
+    opacity: 0.3,
+    transform: [{ skewX: '-45deg' }, { translateX: 100 }],
+    zIndex: 2,
+  },
+  gradientBg3: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '40%',
+    backgroundColor: designColors.sunflower,
+    opacity: 0.5,
+    transform: [{ skewY: '15deg' }, { translateY: 50 }],
+    zIndex: 3,
+  },
+  gradientBg4: {
+    position: 'absolute',
+    bottom: '20%',
+    left: 0,
+    width: '70%',
+    height: '30%',
+    backgroundColor: designColors.orange,
+    opacity: 0.3,
+    transform: [{ skewY: '-20deg' }, { translateX: -50 }],
+    zIndex: 4,
+  },
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 5,
+  },
+  // Content styles
   content: {
     flex: 1,
+    zIndex: 10,
   },
   grid: {
     flex: 1,
     paddingHorizontal: spacing.md,
+    zIndex: 10,
   },
   gridContent: {
     paddingVertical: spacing.md,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: spacing.sm,
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  container: {
-    flex: 1,
-  },
+  // Header styles
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    zIndex: 10,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 28,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
   },
+  // Filters styles
   filtersContainer: {
     paddingHorizontal: spacing.lg,
     marginVertical: spacing.md,
+    zIndex: 10,
   },
   filterButton: {
     flexDirection: "row",
@@ -264,37 +327,78 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginRight: spacing.sm,
-    borderRadius: 20,
+    borderRadius: 24,
+    backgroundColor: 'white',
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   activeFilterButton: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: designColors.sunflower,
   },
   filterText: {
     marginLeft: spacing.xs,
     fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: designColors.blue,
   },
   activeFilterText: {
-    color: colors.primary,
-    fontWeight: "600",
+    color: designColors.deepNavy,
+    fontFamily: 'Poppins-SemiBold',
   },
-  booksGrid: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  emptyState: {
+  // Loading styles
+  loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: spacing.md,
-  },
-  emptyStateDescription: {
-    fontSize: 14,
-    textAlign: "center",
+  loadingText: {
     marginTop: spacing.sm,
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    color: designColors.deepNavy,
+  },
+  // Empty state styles
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    zIndex: 10,
+  },
+  emptyCard: {
+    backgroundColor: 'white',
+    borderRadius: 28,
+    padding: spacing.xl,
+    alignItems: 'center',
+    width: '90%',
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: 'white',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
+    marginBottom: spacing.md,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+    fontFamily: 'Poppins-Regular',
+    color: designColors.blue,
+    marginBottom: spacing.lg,
   },
 });

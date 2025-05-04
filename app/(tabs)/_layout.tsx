@@ -16,29 +16,17 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#1a237e', // Deep blue from the hero image
         tabBarInactiveTintColor: '#9e9e9e', // Medium gray for inactive tabs
         tabBarStyle: {
-          backgroundColor: 'rgba(255, 255, 255, 0.8)', // White with transparency for glass effect
-          borderTopWidth: 0,
-          height: 55, // Smaller height
-          paddingBottom: 8,
-          paddingTop: 8,
-          position: 'absolute',
-          bottom: 15,
-          alignSelf: 'center', // Center horizontally using alignSelf
-          borderRadius: 25, // More rounded corners
-          width: '60%', // Set width to 60% of screen width
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 3 },
-          shadowOpacity: 0.1,
-          shadowRadius: 5,
-          elevation: 5,
-          borderWidth: 0.5,
-          borderColor: 'rgba(255, 255, 255, 0.5)', // Subtle border for glass effect
-          backdropFilter: 'blur(10px)', // Glass blur effect (works on iOS)
+          backgroundColor: '#FFFFFF', // Solid white background
+          borderTopWidth: 0.5, // Add a subtle top border
+          borderTopColor: '#DDDDDD', // Light grey border color
+          height: 60, // Increased height
+          paddingBottom: 5, // Adjusted bottom padding
+          paddingTop: 5, // Reduced top padding to move everything up
         },
         tabBarLabelStyle: {
           fontSize: 11, // Smaller font
           fontWeight: '600',
-          marginBottom: 2,
+          marginTop: -5, // Added negative margin to move labels up closer to icons
         },
         headerStyle: {
           backgroundColor: theme.background,

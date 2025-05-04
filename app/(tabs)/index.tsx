@@ -12,6 +12,7 @@ import {
 import { useRouter } from "expo-router";
 import { TAB_BAR_HEIGHT } from "./_layout";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import { Sparkles, Mic, BookOpen, Award } from "lucide-react-native";
 import { colors } from "@/constants/colors";
 import { spacing } from "@/constants/spacing";
@@ -31,6 +32,15 @@ import Button from "@/components/Button";
 import MascotGuide from "@/components/MascotGuide";
 import WordPronunciationCard from "@/components/WordPronunciationCard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Colors from design.md
+const designColors = {
+  sunflower: '#ffb703',
+  orange: '#fb8500',
+  blue: '#219ebc',
+  skyBlue: '#8ecae6',
+  deepNavy: '#023047'
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -95,6 +105,26 @@ export default function HomeScreen() {
 
   const currentPracticeWords = getPracticeWords();
 
+  // Preload all practice word images to improve navigation speed
+  useEffect(() => {
+    // Preload all images in the background using React Native's Image.prefetch
+    const preloadImages = async () => {
+      console.log('Preloading practice word images...');
+      const imagePromises = currentPracticeWords.map((item) => {
+        return Image.prefetch(item.imageUrl);
+      });
+      
+      try {
+        await Promise.all(imagePromises);
+        console.log('All practice word images preloaded successfully');
+      } catch (error) {
+        console.error('Error preloading images:', error);
+      }
+    };
+    
+    preloadImages();
+  }, [currentPracticeWords]);
+
   useEffect(() => {
     // Show mascot guide on first load
     const timer = setTimeout(() => {
@@ -134,68 +164,41 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={styles.container}>
+      {/* Gradient background layers - similar to OnboardingContainer */}
+      <View style={styles.gradientBg1} />
+      <View style={styles.gradientBg2} />
+      <View style={styles.gradientBg3} />
+      <View style={styles.gradientBg4} />
+      
+      {/* Blur effect overlay */}
+      <BlurView intensity={100} tint="light" style={styles.blurOverlay} />
+      
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: 0 } // Remove top padding for full-screen hero
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero Section with Background Image */}
-        <View style={styles.heroSection}>
-          {/* Background Image - Using local asset */}
-          <Image 
-            source={require('@/assets/images/panda-hero.png')} 
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-            // Fallback to placeholder if image doesn't exist yet
-            onError={() => console.log('Panda hero image not found. Please add it to assets/images/')}
-          />
-          
-          {/* No overlay gradient - showing the original hero image */}
-          
-          {/* Top header with greeting and avatar */}
-          <View style={[styles.header, { paddingTop: insets.top }]}>
-            <View>
-              <Text style={styles.greeting}>{getGreeting()},</Text>
-              <Text style={styles.userName}>{activeChild?.name || "Reader"}!</Text>
-            </View>
-            <Pressable onPress={() => router.push("/(tabs)/profile")}>
-              <Image
-                source={{ uri: activeChild?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(activeChild?.name || 'Guest') }}
-                style={styles.avatar}
-              />
-            </Pressable>
+        {/* Top header with greeting and avatar */}
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+          <View>
+            <Text style={styles.greeting}>{getGreeting()},</Text>
+            <Text style={styles.userName}>{activeChild?.name || "Reader"}!</Text>
           </View>
-          
-          {/* Content area for mascot and tagline */}
-          <View style={styles.heroContentContainer}>
-            {/* Panda mascot image positioned here */}
-            <View style={styles.mascotImageContainer}>
-              {/* Removed glowing circle and placeholder text */}
-            </View>
-            <Text style={styles.heroTagline}>Discover the joy of reading!</Text>
-          </View>
-        </View>
-
-        {/* Blended transition from hero to content */}
-        <View style={styles.heroBottomFade}>
-          <LinearGradient
-            colors={['rgba(13,71,161,0)', 'rgba(13,71,161,0.1)', '#1a237e']} 
-            style={styles.fadeGradient}
-          />
+          <Pressable onPress={() => router.push("/(tabs)/profile")}>
+            <Image
+              source={{ uri: activeChild?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(activeChild?.name || 'Guest') }}
+              style={styles.avatar}
+            />
+          </Pressable>
         </View>
         
-        {/* Content area with gradient background */}
+        {/* Removed hero content with tagline */}
+        
+        {/* Content area */}
         <View style={styles.contentContainer}>
-          <LinearGradient
-            colors={['#1a237e', '#283593', '#3949ab', '#5c6bc0']} // Deep blue gradient that matches the hero image
-            style={styles.contentBackgroundGradient}
-          />
           
-          <View style={styles.statsContainer}>
+          <View style={styles.progressStatsWrapper}>
             <ProgressStats
               booksRead={activeChild?.totalBooksRead || 0}
               minutesRead={activeChild?.totalMinutesRead || 0}
@@ -204,20 +207,9 @@ export default function HomeScreen() {
             />
           </View>
 
-        <View style={styles.pronunciationSection}>
+        <View style={styles.cardContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Practice Pronunciation</Text>
-            <View style={styles.navigationButtons}>
-              <Pressable style={styles.navButton} onPress={handlePreviousWord}>
-                <Text style={styles.navButtonText}>←</Text>
-              </Pressable>
-              <Text style={[styles.wordCounter, { color: theme.textLight }]}>
-                {practiceWordIndex + 1}/{currentPracticeWords.length}
-              </Text>
-              <Pressable style={styles.navButton} onPress={handleNextWord}>
-                <Text style={styles.navButtonText}>→</Text>
-              </Pressable>
-            </View>
+            <Text style={styles.sectionTitle}>Practice Pronunciation</Text>
           </View>
           
           <WordPronunciationCard
@@ -226,22 +218,22 @@ export default function HomeScreen() {
             onResult={handlePronunciationResult}
           />
           
-          <Button
-            title="More Pronunciation Practice"
-            icon={<Mic size={18} color="white" />}
-            onPress={() => router.push("/pronunciation-practice")}
-            style={styles.moreButton}
-          />
+          <View style={styles.navigationContainer}>
+            <Pressable style={styles.navButton} onPress={handlePreviousWord}>
+              <Text style={styles.navButtonText}>←</Text>
+            </Pressable>
+            <Text style={styles.wordCounter}>
+              {practiceWordIndex + 1}/{currentPracticeWords.length}
+            </Text>
+            <Pressable style={styles.navButton} onPress={handleNextWord}>
+              <Text style={styles.navButtonText}>→</Text>
+            </Pressable>
+          </View>
         </View>
 
-        <LinearGradient
-          colors={[colors.tertiaryGradient[0], colors.tertiaryGradient[1]]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.aiSection}
-        >
+        <View style={[styles.cardContainer, styles.aiCardContainer]}>
           <View style={styles.aiContent}>
-            <Sparkles size={24} color="white" />
+            <Sparkles size={24} color={designColors.deepNavy} />
             <View style={styles.aiTextContainer}>
               <Text style={styles.aiTitle}>AI Reading Assistant</Text>
               <Text style={styles.aiDescription}>
@@ -260,24 +252,13 @@ export default function HomeScreen() {
               }
             }}
           />
-        </LinearGradient>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Categories</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </ScrollView>
         </View>
 
+        {/* Categories section removed */}
+
         {activeChild && Object.keys(activeChild.readingProgress || {}).length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Continue Reading</Text>
+          <View style={styles.cardContainer}>
+            <Text style={styles.sectionTitle}>Continue Reading</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -300,8 +281,8 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={[styles.section, styles.lastSection]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Recommended for You</Text>
+        <View style={styles.cardContainer}>
+          <Text style={styles.sectionTitle}>Recommended for You</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -327,200 +308,166 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create<any>({
-  lastSection: {
-    marginBottom: TAB_BAR_HEIGHT + 10,
-  },
+  // Removed lastSection style
   container: {
     flex: 1,
-    backgroundColor: '#4c669f',
-  },
-  heroBottomFade: {
-    height: 50,
-    marginTop: -50,
+    backgroundColor: designColors.skyBlue,
     position: 'relative',
-    zIndex: 5,
+    overflow: 'hidden',
   },
-  fadeGradient: {
+  // Gradient background layers - from OnboardingContainer
+  gradientBg1: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: designColors.skyBlue,
+    zIndex: 1,
+  },
+  gradientBg2: {
     position: 'absolute',
-    left: 0,
-    right: 0,
     top: 0,
+    right: 0,
+    width: '80%',
+    height: '60%',
+    backgroundColor: designColors.blue,
+    opacity: 0.3,
+    transform: [{ skewX: '-45deg' }, { translateX: 100 }],
+    zIndex: 2,
+  },
+  gradientBg3: {
+    position: 'absolute',
     bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '40%',
+    backgroundColor: designColors.sunflower,
+    opacity: 0.5,
+    transform: [{ skewY: '15deg' }, { translateY: 50 }],
+    zIndex: 3,
+  },
+  gradientBg4: {
+    position: 'absolute',
+    bottom: '20%',
+    left: 0,
+    width: '70%',
+    height: '30%',
+    backgroundColor: designColors.orange,
+    opacity: 0.3,
+    transform: [{ skewY: '-20deg' }, { translateX: -50 }],
+    zIndex: 4,
+  },
+  blurOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 5,
   },
   contentContainer: {
     paddingBottom: spacing.md,
-  },
-  contentBackgroundGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    paddingTop: 24, // Increased top padding
+    paddingHorizontal: spacing.lg,
+    zIndex: 10,
   },
   scrollView: {
     flex: 1,
+    zIndex: 10,
   },
   scrollContent: {
     paddingBottom: 0,
   },
-  heroSection: {
-    minHeight: 320, // Significantly reduced height for a more compact hero
-    position: 'relative', // For absolute positioning of children
-  },
-  heroBackgroundImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-  },
-  // Removed heroOverlay style
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    position: 'relative', // To appear above the background
-    zIndex: 2,
+    zIndex: 10,
   },
-  heroContentContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: spacing.xl,
-    position: 'relative', // To appear above the background
-    zIndex: 1,
-  },
-  mascotImageContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    height: 120, // Reduced space for the panda image
-  },
-  mascotImage: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
-  },
-  glowCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    position: 'absolute',
-    shadowColor: '#fff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-  },
-  heroPlaceholder: {
-    fontSize: 20,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: spacing.lg,
-  },
-  heroTagline: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: 'white',
-    textAlign: 'center',
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
+  // Removed hero content container and tagline styles
   greeting: {
     fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+    fontFamily: 'Poppins-Medium',
+    color: designColors.blue,
   },
   userName: {
     fontSize: 28,
-    fontWeight: "700",
-    color: "white",
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: "white",
-  },
-  statsContainer: {
-    marginTop: spacing.md,
-    marginHorizontal: spacing.lg,
-    zIndex: 10,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    // Claymorphism shadow
+    shadowColor: designColors.deepNavy,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(179, 229, 252, 0.5)',
-  },
-  pronunciationSection: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    marginTop: spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: spacing.md,
-    shadowColor: '#1565C0',
-    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(179, 229, 252, 0.5)',
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  progressStatsWrapper: {
+    marginBottom: 24, // Consistent spacing between cards
+  },
+  cardContainer: {
+    marginBottom: 24, // Consistent spacing between cards
+    backgroundColor: 'white',
+    borderRadius: 28,
+    padding: spacing.lg,
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: 'white',
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
-  navigationButtons: {
+  navigationContainer: {
     flexDirection: "row",
-    alignItems: "center",
-  },
-  navButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  navButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: designColors.skyBlue,
+    justifyContent: "center",
+    alignItems: "center",
+    // Claymorphism effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   navButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: "bold",
+    color: designColors.deepNavy,
+    fontSize: 20,
+    fontFamily: 'Poppins-Bold',
   },
   wordCounter: {
-    marginHorizontal: spacing.sm,
-    fontSize: 14,
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    color: designColors.deepNavy,
+    marginHorizontal: spacing.md,
+    minWidth: 40,
+    textAlign: 'center',
   },
-  moreButton: {
-    marginTop: spacing.sm,
-  },
-  aiSection: {
-    borderRadius: 20,
-    padding: spacing.lg,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
+  // Removed moreButton style
+  aiCardContainer: {
+    backgroundColor: designColors.skyBlue,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    shadowColor: "#1565C0",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
   },
   aiContent: {
     flexDirection: "row",
@@ -532,30 +479,24 @@ const styles = StyleSheet.create<any>({
     flex: 1,
   },
   aiTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "white",
+    fontSize: 18,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
   },
   aiDescription: {
-    fontSize: 12,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginTop: 2,
-  },
-  section: {
-    marginBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: designColors.blue,
+    marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
     marginBottom: spacing.md,
   },
-  categoriesContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
   booksContainer: {
-    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
   },
   // New Arrivals section styles removed
   badgesContainer: {
@@ -573,7 +514,7 @@ const styles = StyleSheet.create<any>({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xs,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: designColors.skyBlue,
   },
   badgeName: {
     fontSize: 12,

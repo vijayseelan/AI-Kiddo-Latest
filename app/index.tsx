@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import type { ImageStyle } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Book, BookOpen, Award, Sparkles, ChevronRight } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { typography } from '@/constants/typography';
@@ -23,20 +23,26 @@ import { useUserStore } from '@/store/user-store';
 import Button from '@/components/Button';
 import AnimatedText from '@/components/AnimatedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import OnboardingContainer from '@/components/OnboardingContainer';
 
 const { width, height } = Dimensions.get('window');
 
 
+// Colors from design.md
+const designColors = {
+  sunflower: '#ffb703',
+  orange: '#fb8500',
+  blue: '#219ebc',
+  skyBlue: '#8ecae6',
+  deepNavy: '#023047'
+};
+
 interface ComponentStyles {
-  container: ViewStyle;
-  gradientBackground: ViewStyle;
   scrollView: ViewStyle;
   scrollContent: ViewStyle;
   heroContainer: ViewStyle;
   heroBackgroundImage: ImageStyle;
   heroContent: ViewStyle;
-  heroBottomFade: ViewStyle;
-  fadeGradient: ViewStyle;
   greeting: TextStyle;
   readerText: TextStyle;
   heroTagline: TextStyle;
@@ -45,13 +51,14 @@ interface ComponentStyles {
   title: TextStyle;
   subtitle: TextStyle;
   buttonContainer: ViewStyle;
+  getStartedButtonContainer: ViewStyle;
   getStartedButton: ViewStyle;
   loginButton: ViewStyle;
   buttonText: TextStyle;
   loginButtonText: TextStyle;
   learnMoreContainer: ViewStyle;
   learnMoreText: TextStyle;
-
+  pandaImage: ImageStyle;
 }
 
 export default function WelcomeScreen() {
@@ -133,115 +140,113 @@ export default function WelcomeScreen() {
   };
 
   const handleLearnMore = () => {
-    router.push('/onboarding');
+    router.push('/onboarding/Register');
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[colors.yellow, colors.green, colors.blue]}
-        style={styles.gradientBackground}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <OnboardingContainer>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom }]}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Hero Section with Panda Image - OUTSIDE ScrollView for true full-bleed */}
-        <View style={[styles.heroContainer, { height: height * 0.35 + insets.top }]}> 
-          <Image 
-            source={require('@/assets/images/panda-hero-landing.png')}
-            style={styles.heroBackgroundImage}
-            resizeMode="cover"
-            onError={() => console.log('Landing hero image not found. Please add it to assets/images/')}
-          />
-          <View style={[styles.heroContent, { paddingTop: insets.top + spacing.xl }]}> 
-          </View>
-        </View>
-        {/* Scrollable content begins AFTER hero section */}
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + 20 }
+        {/* Panda reading book illustration with enhanced animation */}
+        <Animated.Image 
+          source={require('@/assets/images/panda-hero-landing.png')}
+          style={[
+            styles.pandaImage,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { translateY: slideUpAnim },
+                { scale: scaleAnim },
+                { rotate: fadeAnim.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: ['-5deg', '5deg', '0deg']
+                }) }
+              ]
+            }
           ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Fade transition below hero */}
-          <View style={styles.heroBottomFade}>
-            <LinearGradient
-              colors={["rgba(26,35,126,0)", "#1a237e"]}
-              style={styles.fadeGradient}
-            />
-          </View>
+          resizeMode="contain"
+        />
 
-          {/* Main content starts here */}
-          <View style={styles.mainContent}>
-            <Animated.View 
-              style={[
-                styles.buttonContainer,
-                {
-                  opacity: buttonFadeAnim,
-                  transform: [{ translateY: buttonSlideAnim }]
-                }
-              ]}
+        {/* Main content starts here */}
+        <View style={styles.mainContent}>
+          <Animated.View 
+            style={[
+              styles.buttonContainer,
+              {
+                opacity: buttonFadeAnim,
+                transform: [{ translateY: buttonSlideAnim }]
+              }
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.getStartedButtonContainer}
+              onPress={handleGetStarted}
             >
-              <TouchableOpacity
+              <LinearGradient
+                colors={[designColors.sunflower, designColors.orange]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={styles.getStartedButton}
-                onPress={handleGetStarted}
               >
                 <Text style={styles.buttonText}>Get Started</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+            >
+              <Text style={styles.loginButtonText}>Log In</Text>
+            </TouchableOpacity>
+            
+            <Animated.View style={{ opacity: learnMoreFadeAnim }}>
+              <TouchableOpacity style={styles.learnMoreContainer} onPress={handleLearnMore}>
+                <Text style={styles.learnMoreText}>Learn more about AI Kiddo</Text>
+                <ChevronRight size={16} color={designColors.blue} />
               </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.loginButton}
-                onPress={handleLogin}
-              >
-                <Text style={styles.buttonText}>Log In</Text>
-              </TouchableOpacity>
-              
-              <Animated.View style={{ opacity: learnMoreFadeAnim }}>
-                <TouchableOpacity style={styles.learnMoreContainer} onPress={handleLearnMore}>
-                  <Text style={styles.learnMoreText}>Learn more about ReadingPal</Text>
-                  <ChevronRight size={16} color={colors.purple} />
-                </TouchableOpacity>
-              </Animated.View>
             </Animated.View>
-          </View>
-        </ScrollView>
-      </LinearGradient>
-    </View>
+          </Animated.View>
+        </View>
+      </ScrollView>
+    </OnboardingContainer>
   );
 }
 
 const styles = StyleSheet.create<ComponentStyles>({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a237e',
-  },
-  gradientBackground: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    minHeight: height,
+    justifyContent: 'center',
   },
   heroContainer: {
     height: height * 0.35,
     width: '100%',
-    backgroundColor: '#1a237e',
-    // Remove border radius at the top so image is flush with status bar
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 28,
     overflow: 'hidden',
     position: 'relative',
     justifyContent: 'flex-end',
     paddingTop: 0,
-    marginTop: 0,
+    marginTop: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: designColors.skyBlue,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
   },
   heroBackgroundImage: {
-    ...StyleSheet.absoluteFillObject,
     width: '100%',
-    height: '100%',
+    height: height * 0.4,
+    alignSelf: 'center',
+    marginBottom: spacing.md,
   },
   heroContent: {
     paddingHorizontal: spacing.xl,
@@ -261,31 +266,41 @@ const styles = StyleSheet.create<ComponentStyles>({
   greeting: {
     fontSize: 24,
     fontFamily: 'Poppins-Regular',
-    color: '#ffffff',
+    color: designColors.deepNavy,
   },
   readerText: {
     fontSize: 40,
     fontFamily: 'Poppins-Bold',
-    color: '#ffffff',
+    color: designColors.deepNavy,
     marginTop: spacing.xs,
   },
   heroTagline: {
     fontSize: 28,
     fontFamily: 'Poppins-SemiBold',
-    color: '#ffffff',
+    color: designColors.blue,
     marginTop: spacing.xl,
   },
   mainContent: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    marginTop: spacing.xl * 6,
+    marginTop: spacing.xl * 2,
+    flex: 1,
+    justifyContent: 'flex-start',
   },
   bookIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    backgroundColor: designColors.skyBlue,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
     overflow: 'hidden',
   },
   imageContainer: {
@@ -312,62 +327,71 @@ const styles = StyleSheet.create<ComponentStyles>({
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Poppins-Bold',
+    color: designColors.deepNavy,
     textAlign: 'center',
-    marginBottom: spacing.md,
-    color: '#ffffff',
+    marginTop: spacing.lg,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Poppins-Regular',
+    color: designColors.blue,
     textAlign: 'center',
-    color: '#ffffff',
-    paddingHorizontal: spacing.md,
-    lineHeight: 22,
-    opacity: 0.8,
+    marginTop: spacing.md,
+    marginBottom: spacing.xl,
   },
   buttonContainer: {
     width: '100%',
     gap: spacing.md,
     alignItems: 'center',
   },
-  getStartedButton: {
-    backgroundColor: colors.purple,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.lg,
-    borderRadius: 25,
-    width: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+  getStartedButtonContainer: {
+    width: '100%',
+    marginBottom: spacing.md,
+    // Claymorphism shadow container
+    shadowColor: designColors.orange,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  getStartedButton: {
+    borderRadius: 28,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    overflow: 'hidden',
   },
   loginButton: {
-    backgroundColor: colors.blue,
-    paddingHorizontal: spacing.xl,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderWidth: 2,
+    borderColor: designColors.blue,
+    borderRadius: 28,
     paddingVertical: spacing.lg,
-    borderRadius: 25,
-    width: '80%',
-    shadowColor: '#000',
+    paddingHorizontal: spacing.xl,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: designColors.skyBlue,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
-    padding: spacing.md,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonText: {
-    color: '#ffffff',
     fontSize: 18,
-    fontFamily: 'Poppins-Bold',
-    textAlign: 'center',
+    fontFamily: 'Poppins-SemiBold',
+    color: designColors.deepNavy,
   },
   loginButtonText: {
-    color: colors.blue,
     fontSize: 18,
-    fontFamily: 'Poppins-Bold',
-    textAlign: 'center',
+    fontFamily: 'Poppins-SemiBold',
+    color: designColors.blue,
   },
   learnMoreContainer: {
     flexDirection: 'row',
@@ -385,6 +409,17 @@ const styles = StyleSheet.create<ComponentStyles>({
     fontSize: 16,
     marginRight: spacing.xs,
     fontFamily: 'Poppins-Medium',
+  },
+  pandaImage: {
+    width: '80%',
+    height: height * 0.35,
+    alignSelf: 'center',
+    marginBottom: spacing.xl,
+    // Enhanced shadow for floating effect
+    shadowColor: designColors.deepNavy,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
   },
 
 });

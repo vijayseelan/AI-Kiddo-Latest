@@ -54,19 +54,53 @@ export interface Child {
 }
 
 export async function getActiveChild(parentId: string): Promise<Child | null> {
+  // First try to get the active child
   const { data, error } = await supabase
     .from('children')
     .select('*')
     .eq('parent_id', parentId)
     .eq('is_active', true)
-    .single();
+    .maybeSingle(); // Use maybeSingle instead of single to avoid error when no rows found
 
   if (error) {
     console.error('Error fetching active child:', error);
     return null;
   }
 
-  return data;
+  // If we found an active child, return it
+  if (data) {
+    return data;
+  }
+  
+  // If no active child found, try to get any child for this parent and set it as active
+  const { data: anyChild, error: anyChildError } = await supabase
+    .from('children')
+    .select('*')
+    .eq('parent_id', parentId)
+    .limit(1)
+    .maybeSingle();
+    
+  if (anyChildError) {
+    console.error('Error fetching any child:', anyChildError);
+    return null;
+  }
+  
+  // If we found a child, set it as active and return it
+  if (anyChild) {
+    const { error: updateError } = await supabase
+      .from('children')
+      .update({ is_active: true })
+      .eq('id', anyChild.id);
+      
+    if (updateError) {
+      console.error('Error setting child as active:', updateError);
+    }
+    
+    return anyChild;
+  }
+  
+  // No children found for this parent
+  return null;
 }
 
 export async function setActiveChild(childId: string, parentId: string): Promise<boolean> {

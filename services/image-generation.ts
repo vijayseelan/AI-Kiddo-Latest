@@ -22,15 +22,12 @@ export const generateImage = async (prompt: string): Promise<GeneratedImage> => 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        // Using the Stable Diffusion model
-        version: "db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",
+        // Using Ideogram V2A Turbo model for claymorphism-styled images
+        version: "ideogram-ai/ideogram-v2a-turbo",
         input: {
-          prompt: `A children's book style illustration of ${prompt}, cute, colorful, safe for kids`,
-          negative_prompt: "scary, violent, inappropriate, realistic, photographic",
-          num_outputs: 1,
-          scheduler: "K_EULER",
-          num_inference_steps: 50,
-          guidance_scale: 7.5,
+          prompt: `A claymorphism style illustration of ${prompt}, soft rounded shapes, pastel colors, subtle shadows, 3D clay-like appearance, smooth edges, child-friendly, playful, colorful, safe for kids`,
+          negative_prompt: "scary, violent, inappropriate, realistic, photographic, sharp edges, flat design, 2D, dark colors, complex textures",
+          aspect_ratio: "1:1", // Square aspect ratio for consistent display
         },
       }),
     });
@@ -69,16 +66,37 @@ export const generateImage = async (prompt: string): Promise<GeneratedImage> => 
 
       if (finalPrediction.status === 'succeeded') {
         console.log('[ImageGen] Replicate prediction succeeded.');
-        if (finalPrediction.output && finalPrediction.output.length > 0) {
-          const imageUrl = finalPrediction.output[0];
-          console.log('[ImageGen] Final Image URL:', imageUrl);
-          return {
-            url: imageUrl,
-          };
-        } else {
-          console.error('[ImageGen] Replicate prediction succeeded but no output URL found.', finalPrediction);
-          throw new Error('Image generation succeeded but no image URL was found.');
+        console.log('[ImageGen] Output type:', typeof finalPrediction.output);
+        
+        // Handle different output formats based on the model
+        if (finalPrediction.output) {
+          let imageUrl;
+          
+          // For Ideogram V2A Turbo model, the output is a single string URL
+          if (typeof finalPrediction.output === 'string' && finalPrediction.output.startsWith('http')) {
+            imageUrl = finalPrediction.output;
+            console.log('[ImageGen] Ideogram model output detected');
+          } 
+          // For Stable Diffusion and other models, output is an array of URLs
+          else if (Array.isArray(finalPrediction.output) && finalPrediction.output.length > 0) {
+            imageUrl = finalPrediction.output[0];
+            console.log('[ImageGen] Standard model output detected');
+          }
+          
+          if (imageUrl) {
+            // Avoid truncating URLs in console logs
+            console.log('[ImageGen] Final Image URL generated successfully');
+            console.log('[ImageGen] URL length:', imageUrl.length);
+            
+            return {
+              url: imageUrl,
+            };
+          }
         }
+        
+        // If we get here, we couldn't extract a valid URL
+        console.error('[ImageGen] Replicate prediction succeeded but no output URL found.', finalPrediction);
+        throw new Error('Image generation succeeded but no image URL was found.');
       } else if (finalPrediction.status === 'failed' || finalPrediction.status === 'canceled') {
         console.error('Replicate prediction failed or canceled:', finalPrediction.error);
         throw new Error(`Image generation failed: ${finalPrediction.error || 'Unknown reason'}`);
@@ -97,15 +115,13 @@ export const generateImage = async (prompt: string): Promise<GeneratedImage> => 
       }
     }
 
-    // Ensure output exists and has at least one item
-    if (!finalPrediction.output || finalPrediction.output.length === 0) {
-        console.error('Replicate prediction succeeded but returned no output:', finalPrediction);
-        throw new Error('Image generation succeeded but no image URL was found.');
-    }
-
-    // Return the first generated image URL
+    // This code is unreachable since we already handle all successful cases above
+    // and return or throw errors appropriately
+    
+    // Add a default return to satisfy TypeScript
     return {
-      url: finalPrediction.output[0],
+      url: '',
+      error: 'Image generation did not complete successfully.'
     };
   } catch (error) {
     console.error('Image generation error:', error);

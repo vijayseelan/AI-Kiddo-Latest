@@ -8,6 +8,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { View, StyleSheet } from "react-native";
 import { AuthProvider, useAuth } from '@/hooks/useAuth'; // Import useAuth
 import { useRouter, useSegments } from "expo-router"; // Import useRouter and useSegments
+import { OnboardingProvider } from '../context/OnboardingContext'; // Import OnboardingProvider
 
 // Custom hook to handle navigation based on auth state
 function useProtectedRoute() {
@@ -49,7 +50,8 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>{/* Wrap with AuthProvider */}
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <OnboardingProvider>{/* Wrap with OnboardingProvider to persist onboarding data */}
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
         <Stack
           screenOptions={{
@@ -81,8 +83,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="book/[id]"
             options={{
-              title: "Book Details",
+              headerShown: false,
               presentation: "card",
+              animation: "slide_from_right",
+              fullScreenGestureEnabled: true,
             }}
           />
           <Stack.Screen
@@ -164,6 +168,7 @@ export default function RootLayout() {
           />
         </Stack>
       </View>
+      </OnboardingProvider>
     </AuthProvider>
   );
 }

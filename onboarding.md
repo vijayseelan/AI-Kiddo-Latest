@@ -14,9 +14,8 @@ This document outlines the new combined Sign Up + Onboarding flow for Reading Pa
 - Create `OnboardingContext` (or hook) to hold:
   - `parentInfo` (name, email, password)
   - `childInfo` (name, age, avatar, reading_level)
-  - `goals[]`
-  - `desiredOutcomes[]`
-  - `dailyMaterials` (1–5)
+  - `goals[]` (combines goals and desired outcomes)
+  - ~~`dailyMaterials` (1–5)~~ (removed)
   - `assessmentResults`, `readingPlan`
 - Wrap all onboarding screens with this provider.
 
@@ -26,27 +25,31 @@ Use Expo Router under `/app/onboarding/`:
 2. `ChildInfo.tsx`
 3. `Avatar.tsx`
 4. `ReadingLevel.tsx`
-5. `CapabilitiesGraph.tsx`
-6. `GoalSelection.tsx`
-7. `DesiredOutcomes.tsx`
-8. `Affirmation1.tsx`
-9. `DailyMaterials.tsx`
-10. `Affirmation2.tsx`
-11. `ProjectionGraph.tsx`
-12. `AssessmentIntro.tsx`
-13. `Assessment.tsx` (word/sentence/passage)
-14. `Analytics.tsx`
-15. `ReadingPlan.tsx`
-16. `Subscription.tsx`
+5. `Capabilities.tsx` (renamed from CapabilitiesGraph.tsx)
+6. `Goals.tsx` (renamed from GoalSelection.tsx, combines goals and desired outcomes)
+7. `Affirmation1.tsx`
+8. `ProjectionGraph.tsx`
+9. `AssessmentIntro.tsx`
+10. `Assessment.tsx` (word/sentence/passage)
+11. `Analytics.tsx`
+12. `ReadingPlan.tsx`
+13. `Subscription.tsx`
 
 ## 4. UI Components & Design
 - Reusable form components: `TextInput`, `PasswordInput`, `Button`, `Slider`, `AvatarPicker`.
 - Charts: `react-native-svg-charts` or `victory-native` for graphs.
 - Claymorphism styling:
-  - Rounded corners (16–24px)
-  - Multi-layer shadows & matte finish
+  - Rounded corners (24-28px)
+  - Multi-layer shadows with white borders
+  - Soft, extruded shapes with subtle shadows and highlights
   - Poppins font family (Regular, Medium, SemiBold, Bold)
-  - Brand colors (red #ff595e, yellow #ffca3a, green #8ac926, blue #1982c4, purple #6a4c93)
+  - Modern color palette:
+    - Sunflower: #ffb703
+    - Orange: #fb8500
+    - Blue: #219ebc
+    - Sky Blue: #8ecae6
+    - Deep Navy: #023047
+  - Consistent gradient background with blur effect in OnboardingContainer
 
 ## 5. Screen-by-Screen Tasks
 1. **Register**: Collect parent name, email, password → Supabase signup.
@@ -57,14 +60,14 @@ Use Expo Router under `/app/onboarding/`:
 6. **GoalSelection**: Multi-select reading goals.
 7. **DesiredOutcomes**: Choose up to 3 outcomes.
 8. **Affirmation1**: Display success statistics (e.g., 90% achieve their goals).
-9. **DailyMaterials**: Slider (1–5) for daily reading materials.
-10. **Affirmation2**: Reassurance message.
-11. **ProjectionGraph**: Projected progress at 1, 3, 6 months.
-12. **AssessmentIntro**: Overview of assessment types.
-13. **Assessment**: Embed word, sentence, passage assessments.
-14. **Analytics**: Fetch & display Azure Pronunciation API results.
-15. **ReadingPlan**: Show personalized baseline & reading plan.
-16. **Subscription**: Present monthly & annual plans, “Start Journey” button.
+  ~~9. **DailyMaterials**: Slider (1–5) for daily reading materials.~~ (removed)
+  ~~10. **Affirmation2**: Reassurance message.~~ (removed)
+  9. **ProjectionGraph**: Projected progress at 1, 3, 6 months.
+  10. **AssessmentIntro**: Overview of assessment types.
+  11. **Assessment**: Embed word, sentence, passage assessments.
+  12. **Analytics**: Fetch & display Azure Pronunciation API results.
+  13. **ReadingPlan**: Show personalized baseline & reading plan.
+  14. **Subscription**: Present monthly & annual plans, "Start Journey" button.
 
 ## 6. Testing & QA
 - Unit tests for form validation & context updates.

@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { StyleSheet, Text, View, Pressable, Modal, ScrollView } from "react-native";
+import { BlurView } from "expo-blur";
+
+// Design system colors
+const designColors = {
+  sunflower: "#ffb703",
+  orange: "#fb8500",
+  blue: "#219ebc",
+  skyBlue: "#8ecae6",
+  deepNavy: "#023047"
+};
 import { getAllAIGeneratedContent } from "@/services/database";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft, ChevronRight, X, Volume2, Mic } from "lucide-react-native";
@@ -243,12 +253,26 @@ export default function ReadingScreen() {
 
   if (book.isGenerated && aiContent) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={styles.container}>
+        {/* Gradient Background Layers */}
+        <View style={styles.gradientBg1} />
+        <View style={styles.gradientBg2} />
+        <View style={styles.gradientBg3} />
+        <View style={styles.gradientBg4} />
+        <BlurView intensity={100} tint="light" style={styles.blurOverlay} />
+        
+        {/* Custom Header with Safe Area */}
         <View style={[styles.header, { paddingTop: insets.top }]}>
-          <Pressable onPress={handleBack} style={styles.backButton}>
-            <ChevronLeft size={24} color={theme.text} />
+          <Pressable 
+            onPress={handleBack} 
+            style={[styles.headerButton, styles.backButton]}
+          >
+            <ChevronLeft size={24} color={colors.primary} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>{book.title}</Text>
+          <Text style={[styles.headerTitle, { fontFamily: 'Poppins_600SemiBold', color: colors.text }]}>{book.title}</Text>
+          
+          {/* Empty view to maintain space-between layout */}
+          <View style={{ width: 40 }} />
         </View>
 
         <AIContentViewer
@@ -374,17 +398,29 @@ export default function ReadingScreen() {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={styles.container}>
+      {/* Gradient Background Layers */}
+      <View style={styles.gradientBg1} />
+      <View style={styles.gradientBg2} />
+      <View style={styles.gradientBg3} />
+      <View style={styles.gradientBg4} />
+      <BlurView intensity={100} tint="light" style={styles.blurOverlay} />
+      
+      {/* Custom Header with Safe Area */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Pressable onPress={handleBack} style={styles.closeButton}>
-          <X size={24} color={theme.text} />
+        <Pressable 
+          onPress={handleBack} 
+          style={[styles.headerButton, styles.backButton]}
+        >
+          <X size={24} color={colors.primary} />
         </Pressable>
-        <Text style={[styles.pageIndicator, { color: theme.textLight }]}>
+        <Text style={[styles.pageIndicator, { fontFamily: 'Poppins_600SemiBold', color: colors.text }]}>
           Page {regularCurrentPage + 1} of {book?.pages?.length ?? 0}
         </Text>
-        {/* Microphone button should be the last element for space-between layout */}
+        {/* Microphone button with claymorphic styling */}
         <Pressable 
           style={[
+            styles.headerButton,
             styles.recordButton, 
             isRecordingPronunciation && styles.recordingButton
           ]}
@@ -617,6 +653,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   backButton: {
     padding: spacing.sm,
@@ -624,9 +666,59 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
+    fontFamily: 'Poppins_600SemiBold',
   },
   container: {
     flex: 1,
+    backgroundColor: designColors.skyBlue,
+  },
+  // Gradient background styles
+  gradientBg1: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '100%',
+    height: '50%',
+    backgroundColor: designColors.blue,
+    transform: [{ skewY: '-15deg' }],
+    opacity: 0.8,
+  },
+  gradientBg2: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: '70%',
+    height: '45%',
+    backgroundColor: designColors.sunflower,
+    transform: [{ skewY: '15deg' }],
+    opacity: 0.7,
+  },
+  gradientBg3: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '60%',
+    height: '40%',
+    backgroundColor: designColors.orange,
+    transform: [{ skewY: '-15deg' }],
+    opacity: 0.6,
+  },
+  gradientBg4: {
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    width: '50%',
+    height: '30%',
+    backgroundColor: designColors.deepNavy,
+    transform: [{ skewY: '15deg' }],
+    opacity: 0.5,
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   header: {
     flexDirection: "row",

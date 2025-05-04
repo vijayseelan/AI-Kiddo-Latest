@@ -304,7 +304,7 @@ export const assessmentTexts = {
 };
 
 import { supabase } from '@/lib/supabase';
-import { convertAIContentToBook, getAllAIGeneratedContent } from '@/services/database';
+import { convertAIContentToBook, getAllAIGeneratedContent, getAIGeneratedContent } from '@/services/database';
 
 // Cache for AI-generated books
 let aiBooks: Book[] = [];
@@ -312,15 +312,30 @@ let aiBooks: Book[] = [];
 // Load AI books into cache
 async function loadAIBooks() {
   try {
+    console.log('[Books] Loading AI books...');
     const { data: { user } } = await supabase.auth.getUser();
     if (user?.id) {
+      console.log('[Books] Authenticated user found:', user.id);
       const { contents, error } = await getAllAIGeneratedContent(user.id);
-      if (!error && contents) {
-        aiBooks = contents.map(convertAIContentToBook);
+      if (error) {
+        console.error('[Books] Error fetching AI content:', error);
+        return;
       }
+      
+      if (contents && contents.length > 0) {
+        console.log('[Books] Found', contents.length, 'AI-generated content items');
+        aiBooks = contents.map(convertAIContentToBook);
+        console.log('[Books] AI books loaded:', aiBooks.length);
+        console.log('[Books] First AI book:', aiBooks[0] ? aiBooks[0].id : 'none');
+      } else {
+        console.log('[Books] No AI-generated content found');
+        aiBooks = [];
+      }
+    } else {
+      console.log('[Books] No authenticated user found');
     }
   } catch (error) {
-    console.error('Error loading AI books:', error);
+    console.error('[Books] Error loading AI books:', error);
   }
 }
 
@@ -328,12 +343,59 @@ async function loadAIBooks() {
 loadAIBooks();
 
 export async function getBookById(id: string): Promise<Book | undefined> {
+  console.log('[getBookById] Looking for book with ID:', id);
+  
   // First check regular books
   const regularBook = books.find((book) => book.id === id);
-  if (regularBook) return regularBook;
+  if (regularBook) {
+    console.log('[getBookById] Found regular book:', regularBook.title);
+    return regularBook;
+  }
 
   // Then check AI-generated books
-  return aiBooks.find((book) => book.id === id);
+  console.log('[getBookById] Checking AI books cache, count:', aiBooks.length);
+  const aiBook = aiBooks.find((book) => book.id === id);
+  
+  if (aiBook) {
+    console.log('[getBookById] Found AI book in cache:', aiBook.title);
+    return aiBook;
+  }
+  
+  // If not found in cache, try to fetch directly from the database
+  console.log('[getBookById] Book not found in cache, trying database...');
+  try {
+    // Get the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
+      console.log('[getBookById] No authenticated user found');
+      return undefined;
+    }
+    
+    // Try to get the content directly from the database
+    const { content, items, error } = await getAIGeneratedContent(id);
+    
+    if (error || !content) {
+      console.log('[getBookById] Content not found in database:', error);
+      return undefined;
+    }
+    
+    // Convert to book format
+    console.log('[getBookById] Found content in database:', content.title);
+    const fetchedBook = convertAIContentToBook({ ...content, items });
+    
+    // Add to cache for future use
+    const existingIndex = aiBooks.findIndex(b => b.id === id);
+    if (existingIndex >= 0) {
+      aiBooks[existingIndex] = fetchedBook;
+    } else {
+      aiBooks.push(fetchedBook);
+    }
+    
+    return fetchedBook;
+  } catch (error) {
+    console.error('[getBookById] Error fetching from database:', error);
+    return undefined;
+  }
 };
 
 export const getBooksByCategory = (categoryId: string): Book[] => {
