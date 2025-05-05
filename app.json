@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Reading Panda",
+    "slug": "reading-panda",
+    "version": "1.0.0",
+    "owner": "vijayaseelanmuniandy",
+    "extra": {
+      "eas": {
+        "projectId": "c63ce94f-8463-4eea-8c7b-0338fa7dd834"
+      }
+    },
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
