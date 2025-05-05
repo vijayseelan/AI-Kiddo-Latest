@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "Reading Panda",
-    "slug": "reading-panda",
+    "slug": "ai-kiddo",
     "version": "1.0.0",
-    "owner": "vijayaseelanmuniandy",
+    "owner": "vijayaseelan",
     "extra": {
       "eas": {
         "projectId": "c63ce94f-8463-4eea-8c7b-0338fa7dd834"
@@ -20,7 +20,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vijayaseelan.aikiddo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -28,10 +32,17 @@
         "backgroundColor": "#ffffff"
       }
     },
-
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "experiments": {
       "typedRoutes": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c63ce94f-8463-4eea-8c7b-0338fa7dd834"
     }
   }
 }
