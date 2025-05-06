@@ -21,10 +21,19 @@ interface Props {
 
 const { width, height } = Dimensions.get('window');
 
+import { Image } from 'react-native';
+
 export default function OnboardingContainer({ children, style }: Props) {
   return (
-    <SafeAreaView style={[styles.safe, style]}> 
-      {/* Main gradient background */}
+    <SafeAreaView style={[styles.safe, style]}>
+      {/* Onboarding background image */}
+      <Image
+        source={require('@/assets/images/onboarding_bg.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      {/*
+      // Main gradient background (disabled for now)
       <LinearGradient
         colors={[
           colorPalette.mint,
@@ -37,7 +46,7 @@ export default function OnboardingContainer({ children, style }: Props) {
         style={styles.mainGradient}
       />
       
-      {/* Accent gradient overlay */}
+      // Accent gradient overlay (disabled for now)
       <LinearGradient
         colors={[
           'transparent',
@@ -50,6 +59,7 @@ export default function OnboardingContainer({ children, style }: Props) {
         end={{ x: 0, y: 1 }}
         style={styles.accentGradient}
       />
+      */}
 
       {/* SVG Wave Shapes - Layered behind blur */}
       <Svg 
@@ -80,6 +90,12 @@ export default function OnboardingContainer({ children, style }: Props) {
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: width,
+    height: height + 100, // Extra height to ensure full coverage
+    zIndex: 0, // Bottom-most layer
+  },
   safe: {
     flex: 1,
     position: 'relative',

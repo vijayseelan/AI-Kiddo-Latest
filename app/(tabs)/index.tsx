@@ -177,7 +177,15 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Main gradient background */}
+      {/* Background Image */}
+      <Image
+        source={require('@/assets/images/onboarding_bg.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      
+      {/* Main gradient background - commented out but kept for reference */}
+      {/*
       <LinearGradient
         colors={[
           colorPalette.mint,
@@ -190,7 +198,7 @@ export default function HomeScreen() {
         style={styles.mainGradient}
       />
       
-      {/* Accent gradient overlay */}
+      // Accent gradient overlay
       <LinearGradient
         colors={[
           'transparent',
@@ -203,6 +211,7 @@ export default function HomeScreen() {
         end={{ x: 0, y: 1 }}
         style={styles.accentGradient}
       />
+      */}
       
       {/* Blur effect overlay */}
       <BlurView intensity={80} tint="light" style={styles.blurOverlay} />
@@ -342,6 +351,12 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create<any>({
   // Removed lastSection style
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height + 100, // Extra height to ensure full coverage
+    zIndex: 0, // Bottom-most layer
+  },
   container: {
     flex: 1,
     position: 'relative',
@@ -408,6 +423,7 @@ const styles = StyleSheet.create<any>({
   },
   progressStatsWrapper: {
     marginBottom: 24, // Consistent spacing between cards
+    paddingHorizontal: 0, // Remove any horizontal padding to match cardContainer width
   },
   cardContainer: {
     marginBottom: 24, // Consistent spacing between cards

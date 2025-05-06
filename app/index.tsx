@@ -10,7 +10,8 @@ import {
   Dimensions, 
   Platform,
   Image,
-  ScrollView
+  ScrollView,
+  ImageBackground
 } from 'react-native';
 import type { ImageStyle } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -23,7 +24,7 @@ import { useUserStore } from '@/store/user-store';
 import Button from '@/components/Button';
 import AnimatedText from '@/components/AnimatedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import OnboardingContainer from '@/components/OnboardingContainer';
+import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,15 +39,17 @@ const designColors = {
 };
 
 interface ComponentStyles {
-  scrollView: ViewStyle;
-  scrollContent: ViewStyle;
+  container: ViewStyle;
+  backgroundImage: ViewStyle;
+  blurContainer: ViewStyle;
+  contentContainer: ViewStyle;
+  spacer: ViewStyle;
   heroContainer: ViewStyle;
   heroBackgroundImage: ImageStyle;
   heroContent: ViewStyle;
   greeting: TextStyle;
   readerText: TextStyle;
   heroTagline: TextStyle;
-  mainContent: ViewStyle;
   bookIconContainer: ViewStyle;
   title: TextStyle;
   subtitle: TextStyle;
@@ -58,7 +61,8 @@ interface ComponentStyles {
   loginButtonText: TextStyle;
   learnMoreContainer: ViewStyle;
   learnMoreText: TextStyle;
-  pandaImage: ImageStyle;
+  loginLinkText: TextStyle;
+  loginLinkHighlight: TextStyle;
 }
 
 export default function WelcomeScreen() {
@@ -132,7 +136,7 @@ export default function WelcomeScreen() {
   }, []);
 
   const handleGetStarted = () => {
-    router.push('/signup');
+    router.push('/onboarding/Register');
   };
 
   const handleLogin = () => {
@@ -144,43 +148,28 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <OnboardingContainer>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom }]}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      <ImageBackground
+        source={require('@/assets/images/landing_bg.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
       >
-        {/* Panda reading book illustration with enhanced animation */}
-        <Animated.Image 
-          source={require('@/assets/images/panda-hero-landing.png')}
-          style={[
-            styles.pandaImage,
-            {
-              opacity: fadeAnim,
-              transform: [
-                { translateY: slideUpAnim },
-                { scale: scaleAnim },
-                { rotate: fadeAnim.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: ['-5deg', '5deg', '0deg']
-                }) }
-              ]
-            }
-          ]}
-          resizeMode="contain"
-        />
-
-        {/* Main content starts here */}
-        <View style={styles.mainContent}>
-          <Animated.View 
-            style={[
-              styles.buttonContainer,
-              {
-                opacity: buttonFadeAnim,
-                transform: [{ translateY: buttonSlideAnim }]
-              }
-            ]}
-          >
+        <BlurView intensity={0} style={styles.blurContainer} tint="light">
+          <View style={styles.contentContainer}>
+            {/* Empty space to allow the background image to show */}
+            <View style={styles.spacer} />
+            
+            {/* Buttons at the bottom of the screen */}
+            <Animated.View 
+              style={[
+                styles.buttonContainer,
+                {
+                  opacity: buttonFadeAnim,
+                  transform: [{ translateY: buttonSlideAnim }],
+                  marginBottom: insets.bottom + spacing.md // Reduced bottom margin
+                }
+              ]}
+            >
             <TouchableOpacity
               style={styles.getStartedButtonContainer}
               onPress={handleGetStarted}
@@ -195,34 +184,40 @@ export default function WelcomeScreen() {
               </LinearGradient>
             </TouchableOpacity>
             
-            <TouchableOpacity
-              style={styles.loginButton}
-              onPress={handleLogin}
-            >
-              <Text style={styles.loginButtonText}>Log In</Text>
-            </TouchableOpacity>
-            
-            <Animated.View style={{ opacity: learnMoreFadeAnim }}>
-              <TouchableOpacity style={styles.learnMoreContainer} onPress={handleLearnMore}>
-                <Text style={styles.learnMoreText}>Learn more about AI Kiddo</Text>
-                <ChevronRight size={16} color={designColors.blue} />
+            <Animated.View style={{ opacity: learnMoreFadeAnim, marginTop: spacing.sm }}>
+              <TouchableOpacity onPress={handleLogin}>
+                <Text style={styles.loginLinkText}>
+                  Already have an account? <Text style={styles.loginLinkHighlight}>Log in</Text>
+                </Text>
               </TouchableOpacity>
             </Animated.View>
-          </Animated.View>
-        </View>
-      </ScrollView>
-    </OnboardingContainer>
+            </Animated.View>
+          </View>
+        </BlurView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create<ComponentStyles>({
-  scrollView: {
+  container: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
-    minHeight: height,
-    justifyContent: 'center',
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  } as ViewStyle,
+  blurContainer: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+  },
+  spacer: {
+    flex: 1,
   },
   heroContainer: {
     height: height * 0.35,
@@ -279,13 +274,6 @@ const styles = StyleSheet.create<ComponentStyles>({
     fontFamily: 'Poppins-SemiBold',
     color: designColors.blue,
     marginTop: spacing.xl,
-  },
-  mainContent: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    marginTop: spacing.xl * 2,
-    flex: 1,
-    justifyContent: 'flex-start',
   },
   bookIconContainer: {
     width: 80,
@@ -345,22 +333,24 @@ const styles = StyleSheet.create<ComponentStyles>({
     width: '100%',
     gap: spacing.md,
     alignItems: 'center',
+    paddingHorizontal: spacing.md,
   },
   getStartedButtonContainer: {
     width: '100%',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm, // Reduced margin
+    alignItems: 'center', // Center the button horizontally
     // Claymorphism shadow container
     shadowColor: designColors.orange,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 6 }, // Reduced shadow offset
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowRadius: 12, // Reduced shadow radius
+    elevation: 8, // Reduced elevation
   },
   getStartedButton: {
     borderRadius: 28,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    width: '100%',
+    paddingVertical: spacing.md, // Reduced vertical padding
+    paddingHorizontal: spacing.lg, // Reduced horizontal padding
+    width: '80%', // Reduced width from 100% to 80%
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
@@ -368,20 +358,20 @@ const styles = StyleSheet.create<ComponentStyles>({
     overflow: 'hidden',
   },
   loginButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: designColors.deepNavy, // Changed to deep navy for a darker look
     borderWidth: 2,
-    borderColor: designColors.blue,
+    borderColor: '#ffffff',
     borderRadius: 28,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xl,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: designColors.skyBlue,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 6,
   },
   buttonText: {
     fontSize: 18,
@@ -391,7 +381,7 @@ const styles = StyleSheet.create<ComponentStyles>({
   loginButtonText: {
     fontSize: 18,
     fontFamily: 'Poppins-SemiBold',
-    color: designColors.blue,
+    color: '#ffffff', // Changed to white for better contrast on dark background
   },
   learnMoreContainer: {
     flexDirection: 'row',
@@ -399,10 +389,12 @@ const styles = StyleSheet.create<ComponentStyles>({
     justifyContent: 'center',
     marginTop: spacing.xl,
     padding: spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(33, 158, 188, 0.9)', // Changed to darker blue (based on the blue color in your palette)
     borderRadius: 20,
     width: '80%',
     alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#ffffff',
   },
   learnMoreText: {
     color: '#ffffff',
@@ -410,16 +402,15 @@ const styles = StyleSheet.create<ComponentStyles>({
     marginRight: spacing.xs,
     fontFamily: 'Poppins-Medium',
   },
-  pandaImage: {
-    width: '80%',
-    height: height * 0.35,
-    alignSelf: 'center',
-    marginBottom: spacing.xl,
-    // Enhanced shadow for floating effect
-    shadowColor: designColors.deepNavy,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
+  loginLinkText: {
+    color: designColors.deepNavy, // Changed to deep navy (nearly black) for better contrast on white background
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+    textAlign: 'center',
   },
-
+  loginLinkHighlight: {
+    color: designColors.sunflower,
+    fontFamily: 'Poppins-SemiBold',
+    textDecorationLine: 'underline',
+  },
 });

@@ -105,17 +105,18 @@ export default function ProgressStats({
 
 const styles = StyleSheet.create({
   outerContainer: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 0, // Remove horizontal padding to match cardContainer width
     paddingVertical: spacing.md,
     // Add perspective to enhance 3D effect
     transform: [{ perspective: 1000 }],
     position: 'relative',
+    width: '100%', // Ensure full width
   },
   shadowLayer: {
     position: 'absolute',
     top: spacing.md + 6,
-    left: spacing.md + 6,
-    right: spacing.md + 6,
+    left: 6, // Adjusted to match new container padding
+    right: 6, // Adjusted to match new container padding
     bottom: spacing.md - 10,
     backgroundColor: 'rgba(2, 48, 71, 0.2)',
     borderRadius: 28,

@@ -1,8 +1,19 @@
 # Design Guidelines for AI Kiddo
 
 ## Colour Palette
-Our app uses a vibrant, modern, and minimal colour palette inspired by claymorphism and designed to be friendly for kids. Here are the primary colours:
+Our app uses a vibrant, modern, and minimal colour palette inspired by claymorphism and designed to be friendly for kids.
 
+### Primary Colour Palette (Claymorphic)
+| Colour Name | Hex Code  |
+|-------------|-----------|
+| Peach       | #faac96   |
+| Aqua        | #90dec8   |
+| Purple      | #9d8bed   |
+| Yellow      | #f8c75e   |
+| Green       | #78d9ad   |
+| Lavender    | #cb97e0   |
+
+### Secondary Colour Palette (Legacy)
 | Colour Name | Hex Code |
 |-------------|----------|
 | Sunflower   | #ffb703  |
@@ -10,6 +21,8 @@ Our app uses a vibrant, modern, and minimal colour palette inspired by claymorph
 | Blue        | #219ebc  |
 | Sky Blue    | #8ecae6  |
 | Deep Navy   | #023047  |
+
+> **Usage:** Use the primary (claymorphic) palette for main UI elements, backgrounds, and illustrations. Use the secondary palette for accents, highlights, and supporting elements.
 
 ### Palette Preview
 

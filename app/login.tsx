@@ -76,27 +76,13 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Background Elements: Gradients, Waves, Blur */}
-      <View style={styles.gradientBg1} />
-      <View style={styles.gradientBg2} />
-      <View style={styles.gradientBg3} />
-      <View style={styles.gradientBg4} />
-      <Svg 
-        height={height * 0.4} 
-        width={width}
-        viewBox={`0 0 ${width} ${height * 0.4}`} 
-        style={styles.waveSvgBottom}
-      >
-        <Path
-          d={`M0 ${height * 0.2} Q${width / 4} ${height * 0.1} ${width / 2} ${height * 0.2} T${width} ${height * 0.2} L${width} ${height * 0.4} L0 ${height * 0.4} Z`}
-          fill="rgba(255, 255, 255, 0.6)" 
-        />
-        <Path 
-          d={`M0 ${height * 0.25} Q${width / 3} ${height * 0.18} ${width / 1.8} ${height * 0.25} T${width} ${height * 0.22} L${width} ${height * 0.4} L0 ${height * 0.4} Z`}
-          fill="rgba(255, 255, 255, 0.8)" 
-        />
-      </Svg>
-      <BlurView intensity={80} tint="light" style={styles.blurOverlay} />
+      {/* Background Image */}
+      <Image 
+        source={require('@/assets/images/login_bg.png')} 
+        style={styles.backgroundImage} 
+        resizeMode="cover" 
+      />
+      <BlurView intensity={0} tint="light" style={styles.blurOverlay} />
 
       {/* Back Button */}
       <TouchableOpacity 
@@ -116,8 +102,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Login Form Section */}
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>Welcome Back!</Text>
+          <View style={[styles.formContainer, styles.formGlassContainer]}>
 
             {error ? (
               <Text style={styles.errorText}>{error}</Text>
@@ -181,8 +166,8 @@ export default function LoginScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity onPress={() => router.push('/signup')} style={styles.signUpContainer}>
-              <Text style={styles.signUpText}>Don't have an account? <Text style={styles.signUpLink}>Sign Up</Text></Text>
+            <TouchableOpacity onPress={() => router.push('/onboarding/Register')} style={styles.signUpContainer}>
+              <Text style={styles.signUpText}>Don't have an account? <Text style={styles.signUpLink}>Get started.</Text></Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -204,11 +189,31 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1, // Allows content to scroll if needed
-    justifyContent: 'center', // Center content vertically if it doesn't fill screen
+    justifyContent: 'flex-end', // Move content lower on the screen
     paddingHorizontal: spacing.lg, // Horizontal padding for form etc.
+    paddingBottom: 48, // Extra space at the bottom
+    minHeight: height * 0.85, // Ensure enough vertical space to push form down
   },
   formContainer: {
     width: '100%',
+  },
+  formGlassContainer: {
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+    marginBottom: 32,
+    marginTop: 24,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 420,
+    // Optional: add a border for extra claymorphic effect
+    borderWidth: 1,
+    borderColor: 'rgba(157, 139, 237, 0.08)', // subtle purple border
   },
   title: {
     fontSize: 28,
@@ -312,38 +317,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'Poppins-Bold',
   },
-  gradientBg1: {
+  backgroundImage: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: designColors.sunflower, // Example color
-    opacity: 0.6,
+    width: width,
+    height: height + 100, // Add extra height to ensure it covers the bottom
     zIndex: 1, // Ensure behind content
-  },
-  gradientBg2: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: designColors.orange, // Example color
-    opacity: 0.6,
-    transform: [{ rotate: '30deg' }, { scale: 1.5 }],
-    zIndex: 1, // Ensure behind content
-  },
-  gradientBg3: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: designColors.blue, // Example color
-    opacity: 0.5,
-    transform: [{ rotate: '-30deg' }, { scale: 1.7 }, {translateX: 50}],
-    zIndex: 1, // Ensure behind content
-  },
-  gradientBg4: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: designColors.skyBlue, // Example color
-    opacity: 0.4,
-    transform: [{ rotate: '60deg' }, { scale: 1.4 }, {translateY: -100}],
-    zIndex: 1, // Ensure behind content
-  },
-  waveSvgBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    zIndex: 2, // Above gradients
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
